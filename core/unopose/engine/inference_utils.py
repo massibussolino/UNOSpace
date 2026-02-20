@@ -54,6 +54,7 @@ def inference_and_save(
                 with torch.no_grad():
                     end_points = model(inputs)
                 pred_Rs.append(end_points["pred_R"])
+                print(end_points["pred_R"])
                 pred_Ts.append(end_points["pred_t"])
                 pred_scores.append(end_points["pred_pose_score"])
 

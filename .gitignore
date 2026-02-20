@@ -49,3 +49,9 @@ events.out.tfevents*
 /models
 
 #external/*
+
+/panoptes-datasets
+/checkpoints
+/datasets
+*.png
+*.pth

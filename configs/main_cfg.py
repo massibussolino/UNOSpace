@@ -21,9 +21,9 @@ from core.unopose.provider.build_data_loader import build_train_loader, build_te
 
 # NOTE: change this for other datasets
 # one shard has ~1000 samples
-dataset_len = 2008971  # 1000 * 1000 * 2  # TODO: update
-train_batch_size_per_rank = 8
-world_size = 4
+dataset_len = 200  # 1000 * 1000 * 2  # TODO: update
+train_batch_size_per_rank = 1
+world_size = 1
 train_batch_size = train_batch_size_per_rank * world_size
 iters_per_epoch = dataset_len // train_batch_size
 # if bs=12 (in code), sam6d epoch~3.58
@@ -89,7 +89,7 @@ test = dict(
     # mixed_precision="no",
     save_results_only=False,
     oneref_type="v1",
-    instance_batch_size=16,
+    instance_batch_size=1,
     vis=False,
 )
 

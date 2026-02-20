@@ -16,6 +16,9 @@ import pycocotools.mask as cocomask
 import torch
 import torchvision.transforms as transforms
 
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
 from core.unopose.utils.data_utils import (
     get_bop_depth_map,
     get_bop_image,
@@ -134,6 +137,58 @@ class BOPTestsetPoseFreeOneRefv2:
         ret_dict["img_id"] = torch.IntTensor([int(self.det_keys[index][7:13])])
         ret_dict["inst_ids"] = torch.IntTensor(inst_ids)
         ret_dict["seg_time"] = torch.FloatTensor([dets[0]["time"]])
+
+        # Print the dictionary keys and their shapes for debugging
+        print('================= Debug Info =================')
+        for k in ret_dict:
+            if isinstance(ret_dict[k], torch.Tensor):
+                print(f"{k}: {ret_dict[k].shape}") 
+
+        instance_idx = 0  # Visualize the first instance
+        obs_pts = ret_dict["pts"][instance_idx].cpu().numpy()
+        tem_pts = ret_dict["tem1_pts"][instance_idx].cpu().numpy()
+        
+        # Optional: Get colors if you want to map RGB to points
+        # This requires un-normalizing the 'rgb' tensor
+        
+        fig = plt.figure(figsize=(12, 6))
+
+        def set_axes_equal(ax):
+            """Make axes of 3D plot have equal scale so that spheres appear as spheres."""
+            x_limits = ax.get_xlim3d()
+            y_limits = ax.get_ylim3d()
+            z_limits = ax.get_zlim3d()
+
+            x_range = abs(x_limits[1] - x_limits[0])
+            x_middle = np.mean(x_limits)
+            y_range = abs(y_limits[1] - y_limits[0])
+            y_middle = np.mean(y_limits)
+            z_range = abs(z_limits[1] - z_limits[0])
+            z_middle = np.mean(z_limits)
+
+            plot_radius = 0.5 * max([x_range, y_range, z_range])
+
+            ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
+            ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
+            ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
+
+        # --- Subplot 1: Observed Points (Scene) ---
+        ax1 = fig.add_subplot(121, projection='3d')
+        ax1.scatter(obs_pts[:, 0], obs_pts[:, 1], obs_pts[:, 2], s=2, c='blue', alpha=0.5)
+        ax1.set_title(f"Observed Points (Scene)\nObj ID: {ret_dict['obj_id'][instance_idx].item()}")
+        set_axes_equal(ax1)
+
+        # --- Subplot 2: Template Points (Reference) ---
+        ax2 = fig.add_subplot(122, projection='3d')
+        ax2.scatter(tem_pts[:, 0], tem_pts[:, 1], tem_pts[:, 2], s=1, c='red', alpha=0.3)
+        ax2.set_title("Template Points (Reference)")
+        set_axes_equal(ax2)
+
+        plt.tight_layout()
+        plt.show()   
+        a = input()
+
+
         return ret_dict
 
     def get_instance(self, data):
@@ -225,6 +280,8 @@ class BOPTestsetPoseFreeOneRefv2:
         ret_dict["tem1_choose"] = torch.IntTensor(tem_choose).long()
         ret_dict["tem1_pts"] = torch.FloatTensor(tem_pts)
         ret_dict["tem1_pose"] = torch.FloatTensor(pose_camref_obj)
+
+
         return ret_dict
 
     def _get_ref_instance(self, scene_id, img_id, obj_id):
